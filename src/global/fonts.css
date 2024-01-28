@@ -1,0 +1,17 @@
+@font-face {
+  font-family: "Ubuntu Regular";
+  src: url("../assets/fonts/ubuntu/ubuntu-regular.woff2") format("woff2"),
+    url("../assets/fonts/ubuntu/Ubuntu-Regular.ttf") format("woff"),
+    url("assets/fonts/ubuntu/ubuntu-regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Ubuntu Bold";
+  src: url("assets/fonts/ubuntu/ubuntu-bold.woff2") format("woff2"),
+    url("assets/fonts/ubuntu/ubuntu-bold.woff") format("woff"),
+    url("assets/fonts/ubuntu/ubuntu-bold.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+}
