@@ -1,13 +1,14 @@
-import React from "react";
-import { Route, Routes } from "react-router-dom";
-import Home from "./pages/home";
+import React, { Suspense } from 'react';
+import { RouterProvider } from 'react-router-dom';
+import routes from './routes';
 
-const App = ({ ...props }) => {
-  console.log(props.Prototype);
+const App = () => {
   return (
-    <Routes>
-      <Route index path="/" element={<Home />} />
-    </Routes>
+    <div className="container">
+      <Suspense fallback={<>Loading...</>}>
+        <RouterProvider router={routes} />
+      </Suspense>
+    </div>
   );
 };
 

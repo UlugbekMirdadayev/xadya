@@ -1,0 +1,61 @@
+.row-header {
+  display: flex;
+  gap: 16px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.row-header h1 {
+  color: #fff;
+  font-size: 20px;
+  line-height: 20px;
+  border-radius: 10px;
+  background: #757070;
+  padding: 12px;
+  flex: 0.7;
+}
+
+.row-header button {
+  flex: 0.3;
+  border-radius: 10px;
+  background: #67bd66;
+  padding: 12px;
+  color: #fff;
+  font-size: 20px;
+  line-height: 20px;
+  border: 1px solid #67bd66;
+}
+.row-header button:active {
+  scale: 0.98;
+  background: #67bd6640;
+}
+
+.grid {
+  display: flex;
+  margin: 20px 0px;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.room {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 200px;
+  height: 200px;
+  border-radius: 4px;
+  background-color: #67bd66;
+  padding: 16px;
+  text-align: center;
+  text-wrap: balance;
+}
+.room p {
+  font-size: 24px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 40px;
+}
+.row-header h1.full {
+  flex: 1;
+}

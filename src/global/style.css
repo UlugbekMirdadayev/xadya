@@ -1,11 +1,37 @@
+@import url('./fonts.css');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   outline: none;
   text-decoration: none;
+  font-family: Ubuntu Regular;
+  list-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0px;
+}
+body {
+  background: rgba(0, 0, 0, 0.76);
 }
 
 .container {
-  max-width: 100%;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100dvh;
+}
+.container-md {
+  padding: 0px 24px;
+}
+button {
+  cursor: pointer;
+}
+
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
