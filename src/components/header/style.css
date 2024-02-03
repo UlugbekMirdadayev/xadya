@@ -44,6 +44,10 @@ header button:active {
   background-color: #ffffff1d;
   transition: 100ms ease;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .list-bar li a:hover {
@@ -53,14 +57,19 @@ header button:active {
 .list-bar li a:active {
   background-color: #ffffff1d;
 }
+
+.list-bar li a.logout {
+  background-color: #f40;
+}
+
 .profile-link {
   width: 50px;
   height: 50px;
   border-radius: 50px;
   background: #d9d9d9;
-  overflow: hidden;
   display: grid;
   place-content: center;
+  position: relative;
 }
 
 .profile-link img {
@@ -73,4 +82,18 @@ header button:active {
   color: #000;
   font-size: 18px;
   font-weight: 700;
+}
+.count-orders {
+  font-size: 14px;
+  color: #fff;
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  padding: 5px;
+  background-color: #000;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-content: center;
 }

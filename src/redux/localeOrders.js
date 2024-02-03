@@ -38,10 +38,41 @@ export const localeOrdersSlice = createSlice({
           recs: [{ ...payload, count: 1 }]
         }
       ];
+    },
+    removeLocaleOrder: (state, { payload }) => {
+      const thisRoom = state?.find((st) => st?.room === payload?.room);
+      if (thisRoom) {
+        return state
+          ?.map((st) => {
+            const orders = st?.recs
+              ?.map((rec) => {
+                if (rec.name === payload?.name) {
+                  if (rec.count - 1) {
+                    return { ...rec, count: rec.count - 1 };
+                  } else {
+                    return false;
+                  }
+                }
+                return rec;
+              })
+              .filter(Boolean);
+
+            if (orders?.length) {
+              return {
+                ...st,
+                recs: orders
+              };
+            } else {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      }
+      return state.filter((st) => st.room !== payload.room);
     }
   }
 });
 
-export const { addLocaleOrder } = localeOrdersSlice.actions;
+export const { addLocaleOrder, removeLocaleOrder } = localeOrdersSlice.actions;
 
 export default localeOrdersSlice.reducer;

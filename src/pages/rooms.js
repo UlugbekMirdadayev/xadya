@@ -10,6 +10,7 @@ const rooms = Array.from({ length: 13 }, (_, k) => ({
 }));
 
 const Rooms = () => {
+
   return (
     <div className="container-md">
       <div className="row-header">

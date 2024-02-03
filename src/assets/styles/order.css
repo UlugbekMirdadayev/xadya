@@ -4,6 +4,7 @@
   font-weight: 600;
 }
 
+.count-prod,
 .price-prod {
   color: #fff;
   font-size: 16px;
@@ -45,11 +46,15 @@
 }
 .rec {
   position: relative;
+  padding: 20px 10px 60px 10px;
+  justify-content: space-between;
 }
 .rec button {
   position: absolute;
-  bottom: 16px;
-  width: calc(100% - 32px);
+  bottom: 10px;
+  left: 16px;
+  right: 16px;
+  width: 100%;
   padding: 8px 16px;
   font-size: 18px;
   color: #fff;
@@ -58,6 +63,7 @@
   border-radius: 8px;
   font-weight: 600;
   transition: 300ms ease;
+  width: auto;
 }
 .rec button:hover {
   border: 5px solid #fff;
@@ -65,4 +71,15 @@
 
 .rec button:active {
   border: 1px solid #fff;
+}
+.row-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.row-bottom svg {
+  width: 20px;
+  height: 20px;
 }

@@ -6,6 +6,8 @@ const routes = [
   { path: '/', element: await import('../pages/rooms') },
   { path: '/rooms', element: await import('../pages/rooms') },
   { path: '/order/:id', element: await import('../pages/order') },
+  { path: '/login', element: await import('../pages/auth/login'), no_header: true },
+  { path: '/register', element: await import('../pages/auth/register'), no_header: true },
   { path: '*', element: await import('../pages/404') }
 ];
 
@@ -17,7 +19,7 @@ export default createBrowserRouter([
       async lazy() {
         const Component = () => (
           <>
-            <Header />
+            {r.no_header ? null : <Header />}
             {r.element.default()}
           </>
         );

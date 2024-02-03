@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import '../assets/styles/order.css';
 import Accord from 'components/accord';
+import { useLocaleOrders } from '../redux/selectors';
+import { formatCurrencyUZS } from 'utils';
 
 const menus = [
   {
@@ -131,6 +133,13 @@ const menus = [
 const Order = () => {
   const { id } = useParams();
 
+  const localeOrders = useLocaleOrders();
+
+  const thisRoomOrders = useMemo(() => localeOrders?.find((rooms) => rooms.room === id)?.recs, [localeOrders, id]);
+  const sumWithInitial = thisRoomOrders?.reduce((accumulator, currentValue) => {
+    return Number(accumulator) + Number(currentValue.price * currentValue.count);
+  }, []);
+
   return (
     <div className="container-md">
       <div className="row-header">
@@ -138,8 +147,13 @@ const Order = () => {
       </div>
 
       {menus.map((room, key) => (
-        <Accord defaultOpened={!key} key={key} room={room} id={id} />
+        <Accord defaultOpened={!key} key={key} room={room} id={id} thisRoomOrders={thisRoomOrders} />
       ))}
+      {thisRoomOrders?.length ? (
+        <button className="order-btn">Buyurtma berish {sumWithInitial && `${formatCurrencyUZS(sumWithInitial)?.replace("UZS","")} UZS`}</button>
+      ) : (
+        ''
+      )}
     </div>
   );
 };
