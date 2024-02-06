@@ -33,6 +33,7 @@ header button:active {
 .list-bar {
   padding: 100px 24px 24px 24px;
   background: rgba(0, 0, 0, 1);
+  position: relative;
 }
 
 .list-bar li a {
@@ -60,6 +61,7 @@ header button:active {
 
 .list-bar li a.logout {
   background-color: #f40;
+  margin-top: 50px;
 }
 
 .profile-link {
@@ -96,4 +98,27 @@ header button:active {
   height: 30px;
   display: grid;
   place-content: center;
+}
+.list-bar .absolute {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 3;
+}
+
+.list-bar .absolute button {
+  padding: 10px 16px;
+  color: #fff;
+}
+
+.reject {
+  background-color: #f40;
+}
+
+.resolve {
+  background-color: #3d3d3d;
 }

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import './form.css';
 import { NavLink, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../redux/user';
+import { postRequest } from 'services/api';
 
 const Register = () => {
   const dispatch = useDispatch();
@@ -19,26 +18,25 @@ const Register = () => {
     }
     setError(false);
     setLoading(true);
-    axios
-      .post('https://api.hadyacrm.uz/api/afitsant/signup', Object.fromEntries(new FormData(form.target)))
+    postRequest('afitsant/signup', Object.fromEntries(new FormData(form.target)))
       .then(() => {
-        axios
-          .post('https://api.hadyacrm.uz/api/afitsant/login', { phone, password })
+        postRequest('afitsant/login', { phone, password })
           .then(({ data }) => {
             setLoading(false);
             toast.success(data?.message || 'Success');
             localStorage.setItem('token-xadya', data?.innerData?.token);
+            localStorage.setItem('user-xadya', JSON.stringify({ phone, password }));
             dispatch(setUser(data?.innerData));
             navigate('/rooms', { replace: true });
           })
-          .catch(({ response: { data } }) => {
+          .catch(({ response } = { response: {} }) => {
             setLoading(false);
-            toast.error(data?.message || 'Error');
+            toast.error(response?.data?.message || 'Error');
           });
       })
-      .catch(({ response: { data } }) => {
+      .catch(({ response } = { response: {} }) => {
         setLoading(false);
-        toast.error(data?.message || 'Error');
+        toast.error(response?.data?.message || 'Error');
       });
   };
   return (

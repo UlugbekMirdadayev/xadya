@@ -1,15 +1,9 @@
 import React from 'react';
-import '../assets/styles/room.css';
 import { Link } from 'react-router-dom';
-
-const rooms = Array.from({ length: 13 }, (_, k) => ({
-  id: k + 'a1',
-  number: k + 1,
-  capacity: 6,
-  busy: true
-}));
+import { useRooms } from '../redux/selectors';
 
 const Rooms = () => {
+  const rooms = useRooms();
 
   return (
     <div className="container-md">
@@ -19,9 +13,10 @@ const Rooms = () => {
       </div>
       <div className="grid">
         {rooms.map((room) => (
-          <Link to={`/order/${room.number}`} key={room.id} className={`room ${room.busy ? 'busy' : ''}`}>
-            <p>{room.number}-stol</p>
-            <p>{room.capacity}-kishili</p>
+          <Link to={`/order/${room?.id}`} key={room?.id} className={`room ${room?.active ? 'busy' : ''}`}>
+            <p>{room?.name}-stol</p>
+            <p>{room?.places}-kishili</p>
+            {room?.active ? <p>band stol</p> : null}
           </Link>
         ))}
       </div>

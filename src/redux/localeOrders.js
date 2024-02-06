@@ -11,12 +11,12 @@ export const localeOrdersSlice = createSlice({
       if (thisRoom) {
         return state.map((st) => {
           if (thisRoom.room === st.room) {
-            const thisRecs = st.recs.find((st) => st.name === payload.name);
+            const thisRecs = st.recs.find((st) => st?.id === payload?.id);
             if (thisRecs) {
               return {
                 ...st,
                 recs: st.recs.map((recs) => {
-                  if (thisRecs.name === recs.name) {
+                  if (thisRecs?.id === recs?.id) {
                     return { ...recs, count: recs.count + 1 };
                   }
                   return recs;
@@ -46,7 +46,7 @@ export const localeOrdersSlice = createSlice({
           ?.map((st) => {
             const orders = st?.recs
               ?.map((rec) => {
-                if (rec.name === payload?.name) {
+                if (rec.id === payload?.id) {
                   if (rec.count - 1) {
                     return { ...rec, count: rec.count - 1 };
                   } else {

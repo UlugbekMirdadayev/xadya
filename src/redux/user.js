@@ -6,7 +6,11 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state, { payload }) => payload
+    setUser: (state, { payload }) => {
+      payload?.token && delete payload.token;
+      payload?.password && delete payload.password;
+      return payload;
+    }
   }
 });
 

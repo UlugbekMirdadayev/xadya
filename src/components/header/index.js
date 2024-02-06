@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import './style.css';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useLocaleOrders, useUser } from '../../redux/selectors';
+import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
+import { getRequest, postRequest } from 'services/api';
+import { useLocaleOrders, useUser } from '../../redux/selectors';
+import { setProducts } from '../../redux/products';
+import { setOrders } from '../../redux/orders';
 import { setUser } from '../../redux/user';
+import * as i from 'assets/icon';
+import io from 'socket.io-client';
+const socket = io.connect('https://api.hadyacrm.uz');
+import './style.css';
+import { setRooms } from '../../redux/rooms';
 
 const links = [
   { label: 'Joylar royxati', to: '/rooms' },
@@ -17,20 +25,106 @@ const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const localeOrders = useLocaleOrders();
-  const logger = () => {};
-  useEffect(() => {
-    logger();
-  }, [localeOrders]);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+
+  const [activeUser, setActiveUser] = useState(true);
+
+  const getRoom = () => {
+    getRequest('room')
+      .then(({ data }) => {
+        dispatch(setRooms(data?.innerData));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   useEffect(() => {
+    if (user?.active === 0) {
+      setActiveUser(false);
+    } else {
+      setActiveUser(true);
+    }
+  }, [user?.active]);
+
+  useEffect(() => {
+    setLoading(true);
     if (!localStorage['token-xadya']) {
       navigate('/register', { replace: true });
+    } else if (localStorage['user-xadya']) {
+      const obj = JSON.parse(localStorage['user-xadya'] || '{}');
+      if (obj.phone && obj.password) {
+        postRequest('afitsant/login', obj)
+          .then(({ data }) => {
+            localStorage.setItem('token-xadya', data?.innerData?.token);
+            localStorage.setItem('user-xadya', JSON.stringify(obj));
+            dispatch(setUser(data?.innerData));
+            if (data?.innerData?.active === 1) {
+              toast.success(data?.message);
+              getRequest('product')
+                .then(({ data }) => {
+                  dispatch(setProducts(data?.innerData));
+                  getRequest('order')
+                    .then((orders) => {
+                      setLoading(false);
+                      getRoom();
+                      dispatch(setOrders(orders?.data?.innerData));
+                    })
+                    .catch((err = { data: { message: 'Error' } }) => {
+                      console.log(err);
+                      setLoading(false);
+                    });
+                })
+                .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
+                  console.log(data.message);
+                  setLoading(false);
+                });
+            }
+          })
+          .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
+            toast.error(data?.message);
+            setLoading(false);
+            localStorage.clear();
+            navigate('/register', { replace: true });
+          });
+      }
     }
-  }, [navigate]);
+  }, []);
+
+  useEffect(() => {
+    getRoom();
+  }, []);
+
+  useEffect(() => {
+    socket.emit('/rooms');
+    socket.on('/rooms', (data) => {
+      console.log(data, 'socket');
+      dispatch(setRooms(data));
+    });
+  }, []);
+
+  const handleExit = () => {
+    setOpen(false);
+    dispatch(setUser(null));
+    localStorage.clear();
+    navigate('/register', { replace: true });
+  };
 
   return (
     <header>
+      {!activeUser && (
+        <div className="page-401">
+          <img src="https://images.plurk.com/5pHVCIyRNMdudWmVrrtQ.png" alt="401" />
+          <h1>401 Unauthorized</h1>
+          <span>Hisob aktiv emas !</span>
+          <button className="logout-button" onClick={handleExit}>
+            <i.LogOut2 />
+            <span>Chiqish</span>
+          </button>
+        </div>
+      )}
       {open && (
         <div className="modal">
           <ul className="list-bar">
@@ -39,38 +133,37 @@ const Header = () => {
                 <NavLink
                   className={link.logout ? 'logout' : undefined}
                   onClick={() => {
-                    setOpen(false);
+                    setOpen(link.logout || false);
                     if (link.logout) {
-                      dispatch(setUser(null));
-                      localStorage.clear();
-                      navigate('/register', { replace: true, relative: 'route' });
+                      setConfirmLogout(true);
                     }
                   }}
                   to={link.to}
                 >
-                  {link.logout ? (
-                    <svg width="24px" height="24px" fill="currentColor" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M868 732h-70.3c-4.8 0-9.3 2.1-12.3 5.8-7 8.5-14.5 16.7-22.4 24.5a353.84 353.84 0 0 1-112.7 75.9A352.8 352.8 0 0 1 512.4 866c-47.9 0-94.3-9.4-137.9-27.8a353.84 353.84 0 0 1-112.7-75.9 353.28 353.28 0 0 1-76-112.5C167.3 606.2 158 559.9 158 512s9.4-94.2 27.8-137.8c17.8-42.1 43.4-80 76-112.5s70.5-58.1 112.7-75.9c43.6-18.4 90-27.8 137.9-27.8 47.9 0 94.3 9.3 137.9 27.8 42.2 17.8 80.1 43.4 112.7 75.9 7.9 7.9 15.3 16.1 22.4 24.5 3 3.7 7.6 5.8 12.3 5.8H868c6.3 0 10.2-7 6.7-12.3C798 160.5 663.8 81.6 511.3 82 271.7 82.6 79.6 277.1 82 516.4 84.4 751.9 276.2 942 512.4 942c152.1 0 285.7-78.8 362.3-197.7 3.4-5.3-.4-12.3-6.7-12.3zm88.9-226.3L815 393.7c-5.3-4.2-13-.4-13 6.3v76H488c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h314v76c0 6.7 7.8 10.5 13 6.3l141.9-112a8 8 0 0 0 0-12.6z" />
-                    </svg>
-                  ) : null}
+                  {link.logout ? <i.LogOut /> : null}
                   {link.label}
                 </NavLink>
               </li>
             ))}
+            {confirmLogout && (
+              <div className="absolute">
+                <button className="reject" onClick={handleExit}>
+                  Ha
+                </button>
+                <button className="resolve" onClick={() => setConfirmLogout(false)}>
+                  {"Yo'q"}
+                </button>
+              </div>
+            )}
           </ul>
         </div>
       )}
       <button onClick={() => setOpen(!open)}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-          <path d="M28.3333 16.6667H5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M35 10H5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M35 23.3333H5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M28.3333 30H5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <i.Menu />
       </button>
       <NavLink onClick={() => setOpen(false)} className={'profile-link'} to={'/rooms'}>
         {/* <img src={'https://picsum.photos/50/50'} alt="profile" /> */}
-        <span className="word-user">{user?.fullname?.slice(0, 1) || 'B'}</span>
+        <span className="word-user">{loading ? <div className="lds-dual-ring" /> : user?.fullname?.slice(0, 1) || 'B'}</span>
         {localeOrders?.length ? <span className="count-orders">{localeOrders?.length || ''}</span> : ''}
       </NavLink>
     </header>

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../redux/user';
-import './form.css';
 import { useUser } from '../../redux/selectors';
 import { toast } from 'react-toastify';
+import { postRequest } from '../../services/api';
 
 const Register = () => {
   const user = useUser();
@@ -21,18 +20,18 @@ const Register = () => {
     }
     setError(false);
     setLoading(true);
-    axios
-      .post('https://api.hadyacrm.uz/api/afitsant/login', Object.fromEntries(new FormData(form.target)))
+    postRequest('afitsant/login', { phone, password })
       .then(({ data }) => {
         setLoading(false);
         toast.success(data?.message || 'Success');
         dispatch(setUser(data?.innerData));
         localStorage.setItem('token-xadya', data?.innerData?.token);
+        localStorage.setItem('user-xadya', JSON.stringify({ phone, password }));
         navigate('/rooms', { replace: true });
       })
-      .catch(({ response: { data } }) => {
+      .catch(({ response } = { response: {} }) => {
         setLoading(false);
-        toast.error(data?.message || 'Error');
+        toast.error(response?.data?.message || 'Error');
       });
   };
 
