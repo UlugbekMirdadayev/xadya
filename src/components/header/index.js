@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { getRequest, postRequest } from 'services/api';
@@ -8,19 +8,24 @@ import { setProducts } from '../../redux/products';
 import { setOrders } from '../../redux/orders';
 import { setUser } from '../../redux/user';
 import * as i from 'assets/icon';
-import io from 'socket.io-client';
-const socket = io.connect('https://api.hadyacrm.uz');
 import './style.css';
 import { setRooms } from '../../redux/rooms';
+import { useOutsideClick } from 'utils/hooks';
+import io from 'socket.io-client';
+const socket = io('https://api.hadyacrm.uz');
 
 const links = [
   { label: 'Joylar royxati', to: '/rooms' },
-  { label: 'Olib ketishga', to: '/self' },
+  // { label: 'Olib ketishga', to: '/self' },
   { label: 'Buyurmalar royxati', to: '/orders' },
   { label: 'Chiqish', to: '/', logout: true }
 ];
 
+const privatPages = ['/register', '/login'];
+
 const Header = () => {
+  const headerModal = useRef();
+  const { pathname } = useLocation();
   const user = useUser();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,6 +57,7 @@ const Header = () => {
   useEffect(() => {
     setLoading(true);
     if (!localStorage['token-xadya']) {
+      setLoading(false);
       navigate('/register', { replace: true });
     } else if (localStorage['user-xadya']) {
       const obj = JSON.parse(localStorage['user-xadya'] || '{}');
@@ -63,24 +69,6 @@ const Header = () => {
             dispatch(setUser(data?.innerData));
             if (data?.innerData?.active === 1) {
               toast.success(data?.message);
-              getRequest('product')
-                .then(({ data }) => {
-                  dispatch(setProducts(data?.innerData));
-                  getRequest('order')
-                    .then((orders) => {
-                      setLoading(false);
-                      getRoom();
-                      dispatch(setOrders(orders?.data?.innerData));
-                    })
-                    .catch((err = { data: { message: 'Error' } }) => {
-                      console.log(err);
-                      setLoading(false);
-                    });
-                })
-                .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
-                  console.log(data.message);
-                  setLoading(false);
-                });
             }
           })
           .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
@@ -94,15 +82,45 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    getRoom();
-  }, []);
+    getRequest('product')
+      .then((products) => {
+        dispatch(setProducts(products?.data?.innerData));
+        getRequest('order')
+          .then((orders) => {
+            setLoading(false);
+            getRoom();
+            dispatch(setOrders(orders?.data?.innerData));
+          })
+          .catch((err = { data: { message: 'Error' } }) => {
+            console.log(err);
+            setLoading(false);
+          });
+      })
+      .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
+        console.log(data.message);
+        setLoading(false);
+      });
+  }, [user?.active]);
 
   useEffect(() => {
     socket.emit('/rooms');
     socket.on('/rooms', (data) => {
       console.log(data, 'socket');
       dispatch(setRooms(data));
+      getRequest('order')
+        .then((orders) => {
+          setLoading(false);
+          dispatch(setOrders(orders?.data?.innerData));
+        })
+        .catch((err = { data: { message: 'Error' } }) => {
+          console.log(err);
+          setLoading(false);
+        });
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const handleExit = () => {
@@ -111,6 +129,12 @@ const Header = () => {
     localStorage.clear();
     navigate('/register', { replace: true });
   };
+
+  useOutsideClick(headerModal, () => setOpen(false));
+
+  if (privatPages.includes(pathname)) {
+    return null;
+  }
 
   return (
     <header>
@@ -126,7 +150,7 @@ const Header = () => {
         </div>
       )}
       {open && (
-        <div className="modal">
+        <div className="modal" ref={headerModal}>
           <ul className="list-bar">
             {links.map((link) => (
               <li key={link.to}>
@@ -158,7 +182,13 @@ const Header = () => {
           </ul>
         </div>
       )}
-      <button onClick={() => setOpen(!open)}>
+      <button
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          setOpen(!open);
+        }}
+      >
         <i.Menu />
       </button>
       <NavLink onClick={() => setOpen(false)} className={'profile-link'} to={'/rooms'}>

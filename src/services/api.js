@@ -20,3 +20,5 @@ axios.interceptors.request.use(
 );
 export const getRequest = (url, config = {}) => axios.get(BASE_URL + url, config);
 export const postRequest = (url, data, config = {}) => axios.post(BASE_URL + url, data, config);
+export const patchRequest = (url, data, config = {}) => axios.patch(BASE_URL + url, data, config);
+export const deleteRequest = (url, config = {}) => axios.delete(BASE_URL + url, config);

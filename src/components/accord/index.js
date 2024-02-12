@@ -2,32 +2,10 @@
 import React, { useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addLocaleOrder, removeLocaleOrder } from '../../redux/localeOrders';
-import { getRequest, postRequest } from 'services/api';
-import { toast } from 'react-toastify';
-import { setOrders } from '../../redux/orders';
 
 const Accord = ({ room, id, defaultOpened = false, thisRoomOrders = [] }) => {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(defaultOpened);
-
-  const setOrder = (product) => {
-    postRequest('order', { room_id: id, product_id: product?.id, quantity: product?.quantity })
-      .then(({ data }) => {
-        console.log(data);
-        getRequest('order')
-          .then((orders) => {
-            dispatch(setOrders(orders?.data?.innerData));
-          })
-          .catch((err) => {
-            toast.success(err?.response?.data?.message || 'Error');
-          });
-        toast.success(data?.message);
-      })
-      .catch((err) => {
-        toast.success(err?.response?.data?.message || 'Error');
-        console.log(err);
-      });
-  };
 
   const handleAddBasket = useCallback(
     (recep) => {
@@ -51,6 +29,7 @@ const Accord = ({ room, id, defaultOpened = false, thisRoomOrders = [] }) => {
     <>
       <div className={`row-header accord ${open ? 'opened' : ''}`} onClick={() => setOpen(!open)}>
         <h1 className="full">
+          {room?.menus[0] && <img className='opener-image' src={room?.menus[0]?.img} alt={room?.menus[0]?.name} />}
           {room.name}
           <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" viewBox="0 0 330 330">
             <path
@@ -64,6 +43,7 @@ const Accord = ({ room, id, defaultOpened = false, thisRoomOrders = [] }) => {
         <div className="grid">
           {room.menus.map((recep, index) => (
             <div key={index} className={`room rec`}>
+              <img className="product-image" src={recep.img} alt={recep.name} />
               <span className="title-prod">{recep.name}</span>
               <span className="price-prod">Narxi: {recep.price} uzs</span>
               {thisSelectedProd(recep)?.count ? (
@@ -75,7 +55,6 @@ const Accord = ({ room, id, defaultOpened = false, thisRoomOrders = [] }) => {
                   <svg
                     onClick={() => {
                       handleAddBasket(recep);
-                      setOrder({ ...recep, quantity: thisSelectedProd(recep)?.count + 1 });
                     }}
                     xmlns="http://www.w3.org/2000/svg"
                     fill="#fff"
@@ -90,7 +69,6 @@ const Accord = ({ room, id, defaultOpened = false, thisRoomOrders = [] }) => {
                 <button
                   onClick={() => {
                     handleAddBasket(recep);
-                    setOrder({ ...recep, quantity: (thisSelectedProd(recep)?.count || 0) + 1 });
                   }}
                 >{`Qo'shish`}</button>
               )}

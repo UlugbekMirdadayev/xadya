@@ -69,10 +69,11 @@ export const localeOrdersSlice = createSlice({
           .filter(Boolean);
       }
       return state.filter((st) => st.room !== payload.room);
-    }
+    },
+    setRoomCompleted: (state, { payload }) => state.filter((item) => item?.room !== payload?.room)
   }
 });
 
-export const { addLocaleOrder, removeLocaleOrder } = localeOrdersSlice.actions;
+export const { addLocaleOrder, removeLocaleOrder, setRoomCompleted } = localeOrdersSlice.actions;
 
 export default localeOrdersSlice.reducer;
