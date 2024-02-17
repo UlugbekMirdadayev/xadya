@@ -56,36 +56,32 @@ const Order = () => {
       });
   };
 
-  const setOrder = (product, index) => {
-    if (index === 0) {
-      setLoading(true);
-    }
-
-    postRequest('order', { room_id: id, product_id: product?.id, quantity: product?.count })
+  const handleAddCart = () => {
+    setLoading(true);
+    postRequest('order', {
+      room_id: id,
+      orders: thisRoomOrders?.map((product) => ({ product_id: product?.id, quantity: product?.count }))
+    })
       .then(({ data }) => {
-        if (thisRoomOrders?.length - 1 === index) {
-          toast.success(data?.message);
-          dispatch(setRoomCompleted({ room: id }));
-          getRequest('order')
-            .then((orders) => {
-              dispatch(setOrders(orders?.data?.innerData));
-              setLoading(false);
-            })
-            .catch((err) => {
-              toast.error(err?.response?.data?.message || 'Error');
-              setLoading(false);
-            });
-        }
+        toast.success(data?.message);
+        getRequest('order')
+          .then((orders) => {
+            dispatch(setOrders(orders?.data?.innerData));
+            setLoading(false);
+          })
+          .catch((err) => {
+            toast.error(err?.response?.data?.message || 'Error');
+            setLoading(false);
+          });
       })
       .catch((err) => {
         toast.error(err?.response?.data?.message || 'Error');
-        if (thisRoomOrders?.length - 1 === index) {
-          setLoading(false);
-        }
+        setLoading(false);
+        console.log('===============err=====================');
+        console.log(err);
+        console.log('===============err=====================');
       });
   };
-
-  const handleAddCart = () => thisRoomOrders?.map(setOrder);
 
   const handleOpenDetails = (order_id) => {
     setLoading(true);

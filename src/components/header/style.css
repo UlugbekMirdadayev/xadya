@@ -84,6 +84,7 @@ header button:active {
   color: #000;
   font-size: 18px;
   font-weight: 700;
+  text-transform: uppercase;
 }
 .count-orders {
   font-size: 14px;

@@ -12,11 +12,10 @@ import './style.css';
 import { setRooms } from '../../redux/rooms';
 import { useOutsideClick } from 'utils/hooks';
 import io from 'socket.io-client';
-const socket = io('https://api.hadyacrm.uz');
+const socket = io('wss://api.hadyacrm.uz');
 
 const links = [
   { label: 'Joylar royxati', to: '/rooms' },
-  // { label: 'Olib ketishga', to: '/self' },
   { label: 'Buyurmalar royxati', to: '/orders' },
   { label: 'Chiqish', to: '/', logout: true }
 ];
@@ -103,9 +102,7 @@ const Header = () => {
   }, [user?.active]);
 
   useEffect(() => {
-    socket.emit('/rooms');
     socket.on('/rooms', (data) => {
-      console.log(data, 'socket');
       dispatch(setRooms(data));
       getRequest('order')
         .then((orders) => {

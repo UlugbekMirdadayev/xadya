@@ -152,14 +152,13 @@ button {
 }
 .bottom-btns {
   position: sticky;
-  bottom: 20px;
+  bottom: 0px;
   width: 100%;
   background: linear-gradient(0deg, #3d3d3d, transparent);
-  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 20px;
+  padding: 20px 0px;
   z-index: 3;
 }
 .order-btn {
