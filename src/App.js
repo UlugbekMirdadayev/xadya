@@ -1,10 +1,13 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import routes from './routes';
 import { useUser } from './redux/selectors';
 import Header from 'components/header';
 
+const privatPages = ['/register', '/login'];
+
 const App = () => {
+  const { pathname } = useLocation();
   const user = useUser();
   const [activeUser, setActiveUser] = useState(true);
 
@@ -18,7 +21,7 @@ const App = () => {
 
   return (
     <div className="container" style={!activeUser ? { overflow: 'hidden', height: '100dvh' } : undefined}>
-      <Header />
+      {privatPages.includes(pathname) ? null : <Header />}
       <Suspense fallback={<div className="lds-dual-ring app-loader" />}>
         <Routes>
           {routes.map((route) => (

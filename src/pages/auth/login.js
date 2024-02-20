@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { setUser } from '../../redux/user';
 import { useUser } from '../../redux/selectors';
 import { toast } from 'react-toastify';
-import { postRequest } from '../../services/api';
+import { post } from '../../services/api';
 
 const Register = () => {
   const user = useUser();
@@ -20,7 +20,7 @@ const Register = () => {
     }
     setError(false);
     setLoading(true);
-    postRequest('afitsant/login', { phone, password })
+    post('afitsant/login', { phone, password })
       .then(({ data }) => {
         setLoading(false);
         toast.success(data?.message || 'Success');

@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
-import { getRequest, postRequest } from 'services/api';
+import { getRequest, post } from 'services/api';
 import { useLocaleOrders, useUser } from '../../redux/selectors';
 import { setProducts } from '../../redux/products';
 import { setOrders } from '../../redux/orders';
@@ -20,11 +20,8 @@ const links = [
   { label: 'Chiqish', to: '/', logout: true }
 ];
 
-const privatPages = ['/register', '/login'];
-
 const Header = () => {
   const headerModal = useRef();
-  const { pathname } = useLocation();
   const user = useUser();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,8 +32,33 @@ const Header = () => {
 
   const [activeUser, setActiveUser] = useState(true);
 
+  useEffect(() => {
+    if (user?.active !== 1) {
+      setLoading(true);
+      if (!localStorage['token-xadya'] || !localStorage['user-xadya']) {
+        setLoading(false);
+        navigate('/register', { replace: true });
+      } else if (localStorage['user-xadya']) {
+        const obj = JSON.parse(localStorage['user-xadya'] || '{}');
+        if (obj.phone && obj.password) {
+          post('afitsant/login', obj)
+            .then(({ data }) => {
+              localStorage.setItem('token-xadya', data?.innerData?.token);
+              dispatch(setUser(data?.innerData));
+            })
+            .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
+              toast.error(data?.message);
+              setLoading(false);
+              localStorage.clear();
+              navigate('/register', { replace: true });
+            });
+        }
+      }
+    }
+  }, [user?.active]);
+
   const getRoom = () => {
-    getRequest('room')
+    getRequest('room', user?.token)
       .then(({ data }) => {
         dispatch(setRooms(data?.innerData));
       })
@@ -48,43 +70,16 @@ const Header = () => {
   useEffect(() => {
     if (user?.active === 0) {
       setActiveUser(false);
-    } else {
+    } else if (user?.active === 1) {
       setActiveUser(true);
     }
   }, [user?.active]);
 
   useEffect(() => {
-    setLoading(true);
-    if (!localStorage['token-xadya']) {
-      setLoading(false);
-      navigate('/register', { replace: true });
-    } else if (localStorage['user-xadya']) {
-      const obj = JSON.parse(localStorage['user-xadya'] || '{}');
-      if (obj.phone && obj.password) {
-        postRequest('afitsant/login', obj)
-          .then(({ data }) => {
-            localStorage.setItem('token-xadya', data?.innerData?.token);
-            localStorage.setItem('user-xadya', JSON.stringify(obj));
-            dispatch(setUser(data?.innerData));
-            if (data?.innerData?.active === 1) {
-              toast.success(data?.message);
-            }
-          })
-          .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
-            toast.error(data?.message);
-            setLoading(false);
-            localStorage.clear();
-            navigate('/register', { replace: true });
-          });
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    getRequest('product')
+    getRequest('product', user?.token)
       .then((products) => {
         dispatch(setProducts(products?.data?.innerData));
-        getRequest('order')
+        getRequest('order', user?.token)
           .then((orders) => {
             setLoading(false);
             getRoom();
@@ -95,43 +90,38 @@ const Header = () => {
             setLoading(false);
           });
       })
-      .catch(({ response: { data } } = { data: { message: 'Error' } }) => {
-        console.log(data.message);
+      .catch(({ response: { data = {} } } = { data: { message: 'Error' } }) => {
+        console.log(data?.message);
         setLoading(false);
       });
-  }, [user?.active]);
+  }, [user?.token]);
 
   useEffect(() => {
-    socket.on('/rooms', (data) => {
-      dispatch(setRooms(data));
-      getRequest('order')
-        .then((orders) => {
-          setLoading(false);
-          dispatch(setOrders(orders?.data?.innerData));
-        })
-        .catch((err = { data: { message: 'Error' } }) => {
-          console.log(err);
-          setLoading(false);
-        });
+    socket.on('connect', () => {
+      socket.on('/rooms', (data) => {
+        console.log(data, 'rooms');
+        dispatch(setRooms(data));
+        getRequest('order', user?.token)
+          .then(({ data }) => dispatch(setOrders(data?.innerData)))
+          .catch((err) => console.log(err));
+      });
     });
-
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [user?.token, dispatch]);
 
   const handleExit = () => {
     setOpen(false);
     dispatch(setUser(null));
+    dispatch(setOrders([]));
+    dispatch(setProducts([]));
+    dispatch(setRooms([]));
     localStorage.clear();
     navigate('/register', { replace: true });
   };
 
   useOutsideClick(headerModal, () => setOpen(false));
-
-  if (privatPages.includes(pathname)) {
-    return null;
-  }
 
   return (
     <header>
@@ -190,7 +180,7 @@ const Header = () => {
       </button>
       <NavLink onClick={() => setOpen(false)} className={'profile-link'} to={'/rooms'}>
         {/* <img src={'https://picsum.photos/50/50'} alt="profile" /> */}
-        <span className="word-user">{loading ? <div className="lds-dual-ring" /> : user?.fullname?.slice(0, 1) || 'B'}</span>
+        <span className="word-user">{loading ? <div className="lds-dual-ring" /> : user?.fullname?.slice(0, 1) || 'H'}</span>
         {localeOrders?.length ? <span className="count-orders">{localeOrders?.length || ''}</span> : ''}
       </NavLink>
     </header>

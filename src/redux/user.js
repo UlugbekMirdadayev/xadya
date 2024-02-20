@@ -7,7 +7,6 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     setUser: (state, { payload }) => {
-      payload?.token && delete payload.token;
       payload?.password && delete payload.password;
       return payload;
     }

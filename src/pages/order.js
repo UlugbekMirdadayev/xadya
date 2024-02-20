@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import Accord from 'components/accord';
-import { useLocaleOrders, useOrders, useProducts } from '../redux/selectors';
+import { useLocaleOrders, useOrders, useProducts, useUser } from '../redux/selectors';
 import { formatCurrencyUZS } from 'utils';
 import { deleteRequest, getRequest, patchRequest, postRequest } from 'services/api';
 import { toast } from 'react-toastify';
@@ -10,8 +10,10 @@ import { useDispatch } from 'react-redux';
 import { setOrders } from '../redux/orders';
 import { useOutsideClick } from 'utils/hooks';
 import moment from 'moment';
+import { Minus } from 'assets/icon';
 
 const Order = () => {
+  const user = useUser();
   const [loading, setLoading] = useState();
   const [isOrderMore, setIsOrderMore] = useState({ open: false });
   const dispatch = useDispatch();
@@ -43,7 +45,7 @@ const Order = () => {
   const handleOrderComplete = (order_id) => {
     if (!order_id) return;
     setLoading(true);
-    patchRequest(`order/report/${order_id}`, {})
+    patchRequest(`order/report/${order_id}`, {}, user?.token)
       .then(({ data }) => {
         dispatch(setRoomCompleted({ room: id }));
         toast.success(data?.message || 'Success');
@@ -58,16 +60,21 @@ const Order = () => {
 
   const handleAddCart = () => {
     setLoading(true);
-    postRequest('order', {
-      room_id: id,
-      orders: thisRoomOrders?.map((product) => ({ product_id: product?.id, quantity: product?.count }))
-    })
+    postRequest(
+      'order',
+      {
+        room_id: id,
+        orders: thisRoomOrders?.map((product) => ({ product_id: product?.id, quantity: product?.count }))
+      },
+      user?.token
+    )
       .then(({ data }) => {
         toast.success(data?.message);
-        getRequest('order')
+        getRequest('order', user?.token)
           .then((orders) => {
             dispatch(setOrders(orders?.data?.innerData));
             setLoading(false);
+            dispatch(setRoomCompleted({ room: id }));
           })
           .catch((err) => {
             toast.error(err?.response?.data?.message || 'Error');
@@ -77,15 +84,12 @@ const Order = () => {
       .catch((err) => {
         toast.error(err?.response?.data?.message || 'Error');
         setLoading(false);
-        console.log('===============err=====================');
-        console.log(err);
-        console.log('===============err=====================');
       });
   };
 
   const handleOpenDetails = (order_id) => {
     setLoading(true);
-    getRequest(`/order/${order_id}`)
+    getRequest(`/order/${order_id}`, user?.token)
       .then(({ data }) => {
         setLoading(false);
         setIsOrderMore({ ...data?.innerData, open: true });
@@ -97,23 +101,50 @@ const Order = () => {
   };
 
   const handleCancel = (order_id) => {
-    deleteRequest(`order/${order_id}`)
+    setLoading(true);
+    deleteRequest(`order/${order_id}`, user?.token)
       .then(({ data }) => {
+        setLoading(false);
         toast.info(data?.message);
+        dispatch(setRoomCompleted({ room: id }));
+        getRequest('order', user?.token)
+          .then((orders) => {
+            dispatch(setOrders(orders?.data?.innerData));
+            setLoading(false);
+            dispatch(setRoomCompleted({ room: id }));
+          })
+          .catch((err) => {
+            toast.error(err?.response?.data?.message || 'Error');
+            setLoading(false);
+          });
         navigate('/rooms');
       })
       .catch((err) => {
+        setLoading(false);
         toast.error(err?.response?.data?.message);
       });
   };
 
   const handleRemoveCancel = (item_id) => {
-    deleteRequest(`order/item/${item_id}`)
+    setLoading(true);
+    deleteRequest(`order/item/${item_id}`, user?.token)
       .then(({ data }) => {
+        setLoading(false);
         toast.info(data?.message);
-        setIsOrderMore({ ...isOrderMore, open: false });
+        getRequest('order', user?.token)
+          .then((orders) => {
+            dispatch(setOrders(orders?.data?.innerData));
+            setLoading(false);
+            dispatch(setRoomCompleted({ room: id }));
+          })
+          .catch((err) => {
+            toast.error(err?.response?.data?.message || 'Error');
+            setLoading(false);
+          });
+        handleOpenDetails(isOrderMore?.id);
       })
       .catch((err) => {
+        setLoading(false);
         toast.error(err?.response?.data?.message);
       });
   };
@@ -128,28 +159,16 @@ const Order = () => {
             <div className="top">
               <div className="row-header">
                 <button onClick={() => setIsOrderMore({ open: false })}>Ortga</button>
-                <button onClick={() => handleCancel(isOrderMore?.id)}>Bekor qilish</button>
+                <button onClick={() => handleCancel(isOrderMore?.id)}>
+                  {loading ? <div className="lds-dual-ring" /> : 'Bekor qilish'}
+                </button>
               </div>
               <ol className="alternating-colors">
                 <strong>{"Buyurtma ma'lumotlari"}</strong>
                 {isOrderMore?.products?.map((product) => (
                   <li key={product?.id}>
-                    <button className="remove" onClick={() => handleRemoveCancel(product?.id)}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24.6" height="24.6" viewBox="0 0 256 256">
-                        <defs></defs>
-                        <g transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
-                          <path
-                            d="M 13.4 88.492 L 1.508 76.6 c -2.011 -2.011 -2.011 -5.271 0 -7.282 L 69.318 1.508 c 2.011 -2.011 5.271 -2.011 7.282 0 L 88.492 13.4 c 2.011 2.011 2.011 5.271 0 7.282 L 20.682 88.492 C 18.671 90.503 15.411 90.503 13.4 88.492 z"
-                            transform=" matrix(1 0 0 1 0 0) "
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M 69.318 88.492 L 1.508 20.682 c -2.011 -2.011 -2.011 -5.271 0 -7.282 L 13.4 1.508 c 2.011 -2.011 5.271 -2.011 7.282 0 l 67.809 67.809 c 2.011 2.011 2.011 5.271 0 7.282 L 76.6 88.492 C 74.589 90.503 71.329 90.503 69.318 88.492 z"
-                            transform=" matrix(1 0 0 1 0 0) "
-                            strokeLinecap="round"
-                          />
-                        </g>
-                      </svg>
+                    <button disabled={loading} className="remove" onClick={() => handleRemoveCancel(product?.id)}>
+                      {loading ? <div className="lds-dual-ring" /> : <Minus />}
                     </button>
                     <strong>
                       {product?.product_name} dan {product?.product_quantity} {product?.product_unit},{' '}

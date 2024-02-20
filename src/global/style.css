@@ -123,12 +123,11 @@ button {
 }
 
 .room {
-  max-width: calc(50% - 15px);
+  width: calc(50% - 15px);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  width: 200px;
   height: 200px;
   border-radius: 4px;
   background-color: #67bd66;
@@ -162,16 +161,15 @@ button {
   z-index: 3;
 }
 .order-btn {
-  width: calc(50% - 20px);
+  width: 100%;
   background-color: #fff;
-  float: left;
   color: #67bd66;
   transition: 200ms ease;
   user-select: none;
-  font-size: 24px;
+  font-size: 18px;
   line-height: 26px;
   border-radius: 10px;
-  padding: 20px;
+  padding: 13px;
   border: 1px solid #67bd66;
   margin: 10px;
   display: flex;
