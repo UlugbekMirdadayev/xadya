@@ -11,8 +11,7 @@ import * as i from 'assets/icon';
 import './style.css';
 import { setRooms } from '../../redux/rooms';
 import { useOutsideClick } from 'utils/hooks';
-import io from 'socket.io-client';
-const socket = io('wss://api.hadyacrm.uz');
+
 
 const links = [
   { label: 'Joylar royxati', to: '/rooms' },
@@ -76,40 +75,27 @@ const Header = () => {
   }, [user?.active]);
 
   useEffect(() => {
-    getRequest('product', user?.token)
-      .then((products) => {
-        dispatch(setProducts(products?.data?.innerData));
-        getRequest('order', user?.token)
-          .then((orders) => {
-            setLoading(false);
-            getRoom();
-            dispatch(setOrders(orders?.data?.innerData));
-          })
-          .catch((err = { data: { message: 'Error' } }) => {
-            console.log(err);
-            setLoading(false);
-          });
-      })
-      .catch(({ response: { data = {} } } = { data: { message: 'Error' } }) => {
-        console.log(data?.message);
-        setLoading(false);
-      });
+    if (user?.token) {
+      getRequest('product', user?.token)
+        .then((products) => {
+          dispatch(setProducts(products?.data?.innerData));
+          getRequest('order', user?.token)
+            .then((orders) => {
+              setLoading(false);
+              getRoom();
+              dispatch(setOrders(orders?.data?.innerData));
+            })
+            .catch((err = { data: { message: 'Error' } }) => {
+              console.log(err);
+              setLoading(false);
+            });
+        })
+        .catch(({ response: { data = {} } } = { data: { message: 'Error' } }) => {
+          console.log(data?.message);
+          setLoading(false);
+        });
+    }
   }, [user?.token]);
-
-  useEffect(() => {
-    socket.on('connect', () => {
-      socket.on('/rooms', (data) => {
-        console.log(data, 'rooms');
-        dispatch(setRooms(data));
-        getRequest('order', user?.token)
-          .then(({ data }) => dispatch(setOrders(data?.innerData)))
-          .catch((err) => console.log(err));
-      });
-    });
-    return () => {
-      socket.disconnect();
-    };
-  }, [user?.token, dispatch]);
 
   const handleExit = () => {
     setOpen(false);
