@@ -40,14 +40,24 @@ const Order = () => {
     });
   }, [products]);
 
-  const isOrder = useMemo(() => orders?.find((order) => order?.room_id === id), [orders]);
+  const isOrder = useMemo(() => orders?.find((order) => order?.room_id === id), [orders, id]);
 
   const handleOrderComplete = (order_id) => {
+    if (order_id) return console.log(order_id);
     if (!order_id) return;
     setLoading(true);
     patchRequest(`order/report/${order_id}`, {}, user?.token)
       .then(({ data }) => {
-        dispatch(setRoomCompleted({ room: id }));
+        getRequest('order', user?.token)
+          .then((orders) => {
+            dispatch(setOrders(orders?.data?.innerData));
+            setLoading(false);
+            dispatch(setRoomCompleted({ room: id }));
+          })
+          .catch((err) => {
+            toast.error(err?.response?.data?.message || 'Error');
+            setLoading(false);
+          });
         toast.success(data?.message || 'Success');
         setLoading(false);
         navigate('/rooms');
@@ -136,6 +146,9 @@ const Order = () => {
             dispatch(setOrders(orders?.data?.innerData));
             setLoading(false);
             dispatch(setRoomCompleted({ room: id }));
+            if (!orders?.data?.innerData?.length) {
+              navigate('/rooms');
+            }
           })
           .catch((err) => {
             toast.error(err?.response?.data?.message || 'Error');

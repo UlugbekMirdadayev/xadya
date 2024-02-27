@@ -25,18 +25,11 @@ const App = () => {
   }, [user?.active]);
 
   useEffect(() => {
-    socket.on('connect', () => {
-      socket.emit('/rooms');
-      socket.on('/rooms', (data) => {
-        console.log('====================================');
-        console.log(data, 'datadata');
-        console.log('====================================');
-        dispatch(setRooms(data));
-      });
+    socket.emit('/rooms');
+    socket.on('/rooms', (data) => {
+      console.log(data, 'rooms');
+      dispatch(setRooms(data));
     });
-    return () => {
-      socket.disconnect();
-    };
   }, [dispatch]);
 
   return (
