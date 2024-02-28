@@ -43,7 +43,6 @@ const Order = () => {
   const isOrder = useMemo(() => orders?.find((order) => order?.room_id === id), [orders, id]);
 
   const handleOrderComplete = (order_id) => {
-    if (order_id) return console.log(order_id);
     if (!order_id) return;
     setLoading(true);
     patchRequest(`order/report/${order_id}`, {}, user?.token)
