@@ -25,7 +25,7 @@ body {
   min-height: 100dvh;
 }
 .container-md {
-  padding: 0px 24px;
+  padding: 0px 10px;
 }
 button {
   cursor: pointer;
@@ -117,7 +117,7 @@ button {
 
 .grid {
   display: flex;
-  margin: 16px 0px;
+  margin: 10px 0px;
   flex-wrap: wrap;
   gap: 10px;
 }
@@ -191,8 +191,9 @@ button {
 
 .title-prod {
   color: #fff;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
+  background: #67bd665c;
 }
 
 .count-prod,
@@ -228,7 +229,7 @@ button {
 
 .opener-image {
   right: initial;
-  left: 20px;
+  left: 10px;
   rotate: 0deg;
   width: 60px;
   height: 60px;
@@ -255,9 +256,9 @@ button {
 }
 .rec button {
   position: absolute;
-  bottom: 10px;
-  left: 16px;
-  right: 16px;
+  bottom: 5px;
+  left: 5px;
+  right: 5px;
   width: 100%;
   padding: 8px 16px;
   font-size: 18px;
@@ -268,13 +269,6 @@ button {
   font-weight: 600;
   transition: 300ms ease;
   width: auto;
-}
-.rec button:hover {
-  border: 5px solid #fff;
-}
-
-.rec button:active {
-  border: 1px solid #fff;
 }
 .row-bottom {
   display: flex;
