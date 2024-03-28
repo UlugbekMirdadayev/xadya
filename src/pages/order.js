@@ -1,16 +1,17 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
-import Accord from 'components/accord';
-import { useLocaleOrders, useOrders, useProducts, useUser } from '../redux/selectors';
-import { formatCurrencyUZS } from 'utils';
-import { deleteRequest, getRequest, patchRequest, postRequest } from 'services/api';
-import { toast } from 'react-toastify';
-import { setRoomCompleted } from '../redux/localeOrders';
-import { useDispatch } from 'react-redux';
-import { setOrders } from '../redux/orders';
-import { useOutsideClick } from 'utils/hooks';
 import moment from 'moment';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import Accord from 'components/accord';
 import { Minus } from 'assets/icon';
+import { formatCurrencyUZS } from 'utils';
+import { useOutsideClick } from 'utils/hooks';
+import { departments, sendMessageTelegram } from 'utils/constants';
+import { deleteRequest, getRequest, patchRequest, post, postRequest } from 'services/api';
+import { useLocaleOrders, useOrders, useProducts, useRooms, useUser } from '../redux/selectors';
+import { setRoomCompleted } from '../redux/localeOrders';
+import { setOrders } from '../redux/orders';
 
 const Order = () => {
   const user = useUser();
@@ -24,7 +25,8 @@ const Order = () => {
   const localeOrders = useLocaleOrders();
   const products = useProducts();
   const orders = useOrders();
-
+  const rooms = useRooms();
+  const thisRoom = useMemo(() => rooms?.find((rooms) => rooms.id === id), [rooms, id]);
   const thisRoomOrders = useMemo(() => localeOrders?.find((rooms) => rooms.room === id)?.recs, [localeOrders, id]);
   const sumWithInitial = thisRoomOrders?.reduce((accumulator, currentValue) => {
     return Number(accumulator) + Number(currentValue.price * currentValue.count);
@@ -67,7 +69,46 @@ const Order = () => {
       });
   };
 
+  const handleSendMessage = (array, option) => {
+    if (!array?.length || !option?.label) return;
+    const data = {
+      data: {
+        products: array?.map((product) => ({
+          name: product?.name,
+          quantity: product?.count
+        }))
+      },
+      printer: option?.printer,
+      waiter: user?.fullname,
+      room: thisRoom?.name
+    };
+
+    post('http://192.168.1.99:6001/example/interface/ethernet.php', { data })
+      .then((response) => {
+        console.log(response, 'success');
+      })
+      .catch((err) => {
+        console.log(err, 'err');
+      });
+      
+    if (!array?.length || !option?.label) return;
+    const message = `<b>Xona/Stol raqami:${thisRoom?.name}</b>\n<i>Ofitsant ismi\n${user?.fullname}</i>\n\n<b>Buyurmalar:</b>\n${array
+      ?.map((product) => `<b>${product?.name?.toUpperCase()} (${product?.count}-${product?.unit})</b>`)
+      .join('\n')}`;
+    fetch(sendMessageTelegram(encodeURI(message), option?.value))
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data, 'success');
+      })
+      .catch((err) => {
+        console.log(err, 'err');
+      });
+  };
+
+  const departmentArray = (_department) => thisRoomOrders.filter(({ department }) => department === _department);
+
   const handleAddCart = () => {
+    departments.map((option) => handleSendMessage(departmentArray(option?.value), option));
     setLoading(true);
     postRequest(
       'order',

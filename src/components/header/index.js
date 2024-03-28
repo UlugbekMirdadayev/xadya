@@ -12,7 +12,6 @@ import './style.css';
 import { setRooms } from '../../redux/rooms';
 import { useOutsideClick } from 'utils/hooks';
 
-
 const links = [
   { label: 'Joylar royxati', to: '/rooms' },
   { label: 'Buyurmalar royxati', to: '/orders' },
@@ -90,8 +89,8 @@ const Header = () => {
               setLoading(false);
             });
         })
-        .catch(({ response: { data = {} } } = { data: { message: 'Error' } }) => {
-          console.log(data?.message);
+        .catch((err) => {
+          console.log(err?.response?.data?.message);
           setLoading(false);
         });
     }
