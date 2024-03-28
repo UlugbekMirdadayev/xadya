@@ -8,10 +8,11 @@ import { Minus } from 'assets/icon';
 import { formatCurrencyUZS } from 'utils';
 import { useOutsideClick } from 'utils/hooks';
 import { departments, sendMessageTelegram } from 'utils/constants';
-import { deleteRequest, getRequest, patchRequest, post, postRequest } from 'services/api';
+import { deleteRequest, getRequest, patchRequest, postRequest } from 'services/api';
 import { useLocaleOrders, useOrders, useProducts, useRooms, useUser } from '../redux/selectors';
 import { setRoomCompleted } from '../redux/localeOrders';
 import { setOrders } from '../redux/orders';
+import axios from 'axios';
 
 const Order = () => {
   const user = useUser();
@@ -83,14 +84,25 @@ const Order = () => {
       room: thisRoom?.name
     };
 
-    post('http://192.168.1.99:6001/example/interface/ethernet.php', { data })
+    const config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'http://192.168.1.99:6001/example/interface/ethernet.php',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: data
+    };
+
+    axios
+      .request(config)
       .then((response) => {
-        console.log(response, 'success');
+        console.log(JSON.stringify(response.data));
       })
-      .catch((err) => {
-        console.log(err, 'err');
+      .catch((error) => {
+        console.log(error);
       });
-      
+
     if (!array?.length || !option?.label) return;
     const message = `<b>Xona/Stol raqami:${thisRoom?.name}</b>\n<i>Ofitsant ismi\n${user?.fullname}</i>\n\n<b>Buyurmalar:</b>\n${array
       ?.map((product) => `<b>${product?.name?.toUpperCase()} (${product?.count}-${product?.unit})</b>`)
