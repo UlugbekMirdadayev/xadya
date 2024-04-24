@@ -7,7 +7,7 @@ import Accord from 'components/accord';
 import { Minus } from 'assets/icon';
 import { formatCurrencyUZS } from 'utils';
 import { useOutsideClick } from 'utils/hooks';
-import { departments, sendMessageTelegram } from 'utils/constants';
+import { departments } from 'utils/constants';
 import { deleteRequest, getRequest, patchRequest, postRequest } from 'services/api';
 import { useLocaleOrders, useOrders, useProducts, useRooms, useUser } from '../redux/selectors';
 import { setRoomCompleted } from '../redux/localeOrders';
@@ -101,19 +101,6 @@ const Order = () => {
       })
       .catch((error) => {
         console.log(error);
-      });
-
-    if (!array?.length || !option?.label) return;
-    const message = `<b>Xona/Stol raqami:${thisRoom?.name}</b>\n<i>Ofitsant ismi\n${user?.fullname}</i>\n\n<b>Buyurmalar:</b>\n${array
-      ?.map((product) => `<b>${product?.name?.toUpperCase()} (${product?.count}-${product?.unit})</b>`)
-      .join('\n')}`;
-    fetch(sendMessageTelegram(encodeURI(message), option?.value))
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data, 'success');
-      })
-      .catch((err) => {
-        console.log(err, 'err');
       });
   };
 
